@@ -78,11 +78,6 @@ class CssInliner
     protected $domDocument = null;
 
     /**
-     * @var string
-     */
-    private $css = '';
-
-    /**
      * @var bool[]
      */
     private $excludedSelectors = [];
@@ -220,15 +215,17 @@ class CssInliner
     }
 
     /**
-     * Sets the CSS to merge with the HTML.
+     * Inlines the given CSS into the existing HTML.
      *
-     * @param string $css the CSS to merge, must be UTF-8-encoded
+     * @param string $css the CSS to inline, must be UTF-8-encoded
      *
-     * @return void
+     * @return CssInliner fluent interface
      */
-    public function setCss($css)
+    public function inlineCss($css = '')
     {
-        $this->css = $css;
+        $this->process($css);
+
+        return $this;
     }
 
     /**
@@ -293,40 +290,6 @@ class CssInliner
     }
 
     /**
-     * Applies $this->css to the given HTML and returns the HTML with the CSS
-     * applied.
-     *
-     * This method places the CSS inline.
-     *
-     * @return string
-     *
-     * @throws SyntaxErrorException
-     */
-    public function emogrify()
-    {
-        $this->process();
-
-        return $this->render();
-    }
-
-    /**
-     * Applies $this->css to the given HTML and returns only the HTML content
-     * within the <body> tag.
-     *
-     * This method places the CSS inline.
-     *
-     * @return string
-     *
-     * @throws SyntaxErrorException
-     */
-    public function emogrifyBodyContent()
-    {
-        $this->process();
-
-        return $this->renderBodyContent();
-    }
-
-    /**
      * Creates a DOM document from the given HTML and stores it in $this->domDocument.
      *
      * The DOM document will always have a BODY element and a document type.
@@ -384,11 +347,13 @@ class CssInliner
      *
      * This method places the CSS inline.
      *
+     * @param string $allCss the CSS to inline, must be UTF-8-encoded
+     *
      * @return void
      *
      * @throws SyntaxErrorException
      */
-    protected function process()
+    protected function process($allCss)
     {
         $this->clearAllCaches();
         $this->purgeVisitedNodes();
@@ -399,7 +364,6 @@ class CssInliner
 
         // grab any existing style blocks from the html and append them to the existing CSS
         // (these blocks should be appended so as to have precedence over conflicting styles in the existing CSS)
-        $allCss = $this->css;
         if ($this->isStyleBlocksParsingEnabled) {
             $allCss .= $this->getCssFromAllStyleNodes($xPath);
         }
